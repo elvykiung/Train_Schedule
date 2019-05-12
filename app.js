@@ -38,6 +38,7 @@ $('#add-train-btn').on('click', function(event) {
   var destination = $('#destination-input')
     .val()
     .trim();
+
   var trainStart = $('#first-train-time-input')
     .val()
     .trim();
@@ -45,6 +46,17 @@ $('#add-train-btn').on('click', function(event) {
   var frequency = $('#frequency-input')
     .val()
     .trim();
+
+  // validate input has to be number
+  if (!moment(trainStart).isValid()) {
+    alert('train time invalid');
+    return;
+  }
+
+  if (!moment(frequency).isValid()) {
+    alert('train time invalid');
+    return;
+  }
 
   var newTrain = {
     TrainName: trainName,
@@ -55,11 +67,6 @@ $('#add-train-btn').on('click', function(event) {
 
   //uploads the data to database
   database.ref().push(newTrain);
-  console.log('==========================');
-  console.log(newTrain.TrainName);
-  console.log(newTrain.Destination);
-  console.log(newTrain.FirstTrain);
-  console.log(newTrain.Frequency);
 
   //clears inout box
   $('#train-name-input').val('');
@@ -70,16 +77,34 @@ $('#add-train-btn').on('click', function(event) {
 // 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
 
 database.ref().on('child_added', function(childSnapshot) {
-  console.log('=======================');
-  console.log(childSnapshot.val());
-
   var trainName = childSnapshot.val().TrainName;
   var destination = childSnapshot.val().Destination;
   var firstTrain = childSnapshot.val().FirstTrain;
   var frequency = childSnapshot.val().Frequency;
-  console.log('========================');
-  console.log(trainName);
-  console.log(destination);
-  console.log(firstTrain);
-  console.log(frequency);
+
+  // Prettify the train first train time
+  var trainStartPretty = moment.unix(firstTrain).format('HH:mm');
+  //===============calculate the time=========================================
+  // First Time (pushed back 1 year to make sure it comes before current time)
+  var firstTimeConverted = moment(firstTrain, 'HH:mm').subtract(1, 'years');
+
+  // Difference between the times
+  var diffTime = moment().diff(moment(firstTimeConverted), 'minutes');
+
+  // Time apart (remainder)
+  var tRemainder = diffTime % frequency;
+
+  // Minute Until Train
+  var tMinutesTillTrain = frequency - tRemainder;
+
+  // Next Train
+  var nextTrain = moment().add(tMinutesTillTrain, 'minutes');
+  nextTrain = moment(nextTrain).format('HH:mm');
+
+  //append the data to display board
+
+  var newRow = $('<tr>').append($('<td>').text(trainName), $('<td>').text(destination), $('<td>').text(frequency), $('<td>').text(nextTrain), $('<td>').text(tMinutesTillTrain));
+
+  // Append the new row to the table
+  $('#trainSchedule-display > tbody').append(newRow);
 });
