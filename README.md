@@ -11,7 +11,7 @@
 
 This is an apps allow user to input train schedule and automaticaly out put the next arrival and minute away
 
-![Image](final.png)
+![Image](https://github.com/elvykiung/Train_Schedule/blob/master/final.PNG?raw=true)
 
 ## Technologies
 
